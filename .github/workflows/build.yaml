@@ -83,7 +83,7 @@ jobs:
         arch:
           - name: arm32
             container: andriyfedorov/docker-github-runner:arm32
-            runner: linux-armv7l
+            runner: ubuntu-22.04
             example-prefix: linux-armv7l-
         include:
           - examples: >-
