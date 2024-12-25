@@ -89,6 +89,10 @@ jobs:
             container: docker.io/agners/aarch64-chip-build:42
             runner: linux-arm64
             example-prefix: linux-arm64-
+          - name: arm32
+            container: andriyfedorov/docker-github-runner:arm32
+            runner: linux-arm-v7
+            example-prefix: linux-arm-v7-
         include:
           - examples: >-
               ota-provider
