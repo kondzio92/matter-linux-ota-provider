@@ -33,10 +33,7 @@ jobs:
             today="$(date --utc '+%Y-%m-%d')"
             midnight_timestamp="$(date --utc +%s --date=$today)"
             calver_date="$(date --utc --date=$today '+%Y.%-m.dev%-d')"
-            # Remove invalid chars
-            localversion="${version}"
-            localversion="${localversion//-/}"
-            localversion="${localversion//_/}"
+            localversion="${version//[-_]/}"
             version="${calver_date}+${localversion}"
           fi
           echo "Building version $version"
@@ -75,39 +72,14 @@ jobs:
           path: ./connectedhomeip.tar.zst
 
   build_linux_examples:
-    name: Build example apps for Linux (${{ matrix.arch.name }})
+    name: Build example apps for Linux (ARMv7)
     needs: build_prepare
 
-    strategy:
-      matrix:
-        arch:
-          - name: x86-64
-            container: ghcr.io/project-chip/chip-build:42
-            runner: ubuntu-22.04
-            example-prefix: linux-x64-
-          - name: aarch64
-            container: docker.io/agners/aarch64-chip-build:42
-            runner: linux-arm64
-            example-prefix: linux-arm64-
-        include:
-          - examples: >-
-              ota-provider
-            variant: -libnl-no-ble-no-wifi-no-thread-boringssl
-
-    runs-on: ${{ matrix.arch.runner }}
-    permissions:
-      contents: write # for actions/upload-release-asset to upload release asset
+    runs-on: self-hosted  # Użycie self-hosted runnera
 
     defaults:
       run:
         working-directory: ./connectedhomeip/
-
-    container:
-      image: ${{ matrix.arch.container }}
-      volumes:
-        - "/tmp/log_output:/tmp/test_logs"
-      options: --sysctl "net.ipv6.conf.all.disable_ipv6=0
-        net.ipv4.conf.all.forwarding=1 net.ipv6.conf.all.forwarding=1"
 
     steps:
       - name: Restore Matter SDK from artifacts
@@ -115,7 +87,7 @@ jobs:
         with:
           name: matter-sdk-${{ github.run_id }}
       - name: Extract Matter SDK from tar
-        working-directory: ./
+        working-directory: ./  # Dostosowanie do lokalizacji plików
         run: |
           apt update && apt install zstd
           rm -rf connectedhomeip/
@@ -139,7 +111,7 @@ jobs:
       - name: Rename and strip symbols
         run: |
           for example in bin/*; do
-              mv "${example}" "${example}-${{ matrix.arch.name }}"
+              mv "${example}" "${example}-armv7"
           done
           for example in bin/*; do
               objcopy --only-keep-debug "${example}" "${example}.debug"
@@ -149,14 +121,14 @@ jobs:
       - name: Upload binaries as artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: chip-linux-example-apps-${{ matrix.arch.name }}
+          name: chip-linux-example-apps-armv7
           path: |
             ./connectedhomeip/bin/
             !./connectedhomeip/bin/*.debug
       - name: Upload debug symbols as artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: chip-linux-example-apps-debug-${{ matrix.arch.name }}
+          name: chip-linux-example-apps-debug-armv7
           path: |
             ./connectedhomeip/bin/*.debug
       - name: Upload binaries as release assets
@@ -164,4 +136,3 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: ./connectedhomeip/bin/*
-
