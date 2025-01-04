@@ -65,6 +65,7 @@ jobs:
         run: |
           tar -caf ../connectedhomeip.tar.zst --exclude ./connectedhomeip/.environment --use-compress-program=zstdmt .
           mv ../connectedhomeip.tar.zst ./connectedhomeip.tar.zst
+          md5sum connectedhomeip.tar.zst
       - name: Store Matter SDK as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -90,6 +91,7 @@ jobs:
         working-directory: ./  # Dostosowanie do lokalizacji plików
         run: |
           rm -rf connectedhomeip/
+          md5sum connectedhomeip.tar.zst
           tar -xaf ./connectedhomeip.tar.zst --use-compress-program=zstdmt .
           git config --global --add safe.directory "*"
       - name: Bootstrap
