@@ -89,7 +89,6 @@ jobs:
       - name: Extract Matter SDK from tar
         working-directory: ./  # Dostosowanie do lokalizacji plików
         run: |
-          apt update && apt install zstd
           rm -rf connectedhomeip/
           tar -xaf ./connectedhomeip.tar.zst --use-compress-program=zstdmt .
           git config --global --add safe.directory "*"
